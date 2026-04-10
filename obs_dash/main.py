@@ -2,6 +2,8 @@ import importlib.metadata as meta
 
 import typer
 
+from .run import app as run
+
 NAME = 'wayland-obs-dash'
 
 
@@ -15,3 +17,6 @@ app = typer.Typer(
 @app.command(help='show version info')
 def version() -> None:
     print(f'v{meta.version(NAME)}')
+
+
+app.add_typer(run)
