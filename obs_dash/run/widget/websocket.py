@@ -30,9 +30,15 @@ class OBS_Client:
         )
 
     async def _connect(self) -> None:
-        await self._ws.connect()
-        await self._ws.wait_until_identified()
-        self._set_css_classes('connected')
+        try:
+            await self._ws.connect()
+            await self._ws.wait_until_identified()
+            self._set_css_classes('connected')
+            return
+        except Exception as e:
+            print(e)
+        # set to default state if anything wrong
+        self._set_css_classes('disconnect')
 
     async def _disconnect(self) -> None:
         await self._ws.disconnect()
