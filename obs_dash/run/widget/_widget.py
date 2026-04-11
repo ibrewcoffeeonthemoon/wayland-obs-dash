@@ -1,10 +1,12 @@
 # For GTK4 Layer Shell to get linked before libwayland-client we must explicitly load it before importing with gi
 # ref: https://github.com/wmww/gtk4-layer-shell/blob/main/examples/simple-example.py
-import time
+import threading
 from ctypes import CDLL
 
 import cairo
 import gi
+
+from .websocket import OBSClient
 
 # pre-loading
 CDLL('libgtk4-layer-shell.so')
@@ -15,16 +17,18 @@ gi.require_version('Gtk4LayerShell', '1.0')
 
 # MUST load after CDLL("libgtk4-layer-shell.so") pre-loading
 # should load after gi.require_version pre-checking
-from gi.repository import Gdk, Gtk  # noqa
+from gi.repository import Gdk, Gtk, GLib  # noqa
 from gi.repository import Gtk4LayerShell as LayerShell  # noqa
 
 
 class OBSStatusWidget(Gtk.Application):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.start_time = time.time()
+        self._client = OBSClient(
+            update_label=self.update_label
+        )
 
-    def do_activate(self):
+    def do_activate(self) -> None:
         # Create a window
         win = Gtk.ApplicationWindow(application=self)
 
@@ -42,6 +46,8 @@ class OBSStatusWidget(Gtk.Application):
 
         # 4. UI Components
         self.label = Gtk.Label(label='00:00:00')
+        self.label.set_halign(Gtk.Align.CENTER)
+        self.label.set_valign(Gtk.Align.CENTER)
 
         # Container to act as the "Red Box"
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -53,13 +59,13 @@ class OBSStatusWidget(Gtk.Application):
         css_provider.load_from_data('''
             box {
                 background-color: #ff0000;
-                border-radius: 8px;
+                border-radius: 12px;
+                padding: 10px; /* Gives the text some breathing room */
             }
             label {
                 color: white;
-                font-weight: bold;
-                font-size: 16px;
-                margin: auto;
+                font-weight: 800; /* Extra bold */
+                font-size: 32px;  /* Much larger text */
             }
         ''', -1)
 
@@ -71,3 +77,13 @@ class OBSStatusWidget(Gtk.Application):
 
         win.set_child(box)
         win.present()
+
+        # worker thread
+        t = threading.Thread(target=self._client.run, daemon=True)
+        t.start()
+
+    def update_label(self, text: str) -> None:
+        def callback(text: str) -> bool:
+            self.label.set_text(text)
+            return False  # Required for idle_add one-shot calls
+        GLib.idle_add(callback, text)
