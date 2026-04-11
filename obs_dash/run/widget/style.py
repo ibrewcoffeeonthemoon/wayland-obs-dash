@@ -1,4 +1,7 @@
 CSS = '''
+    window {
+        background-color: transparent;
+    }
     box {
         border-radius: 12px;
         padding: 10px;
