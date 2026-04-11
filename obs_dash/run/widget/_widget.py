@@ -21,10 +21,12 @@ from gi.repository import Gdk, Gtk, GLib  # noqa
 from gi.repository import Gtk4LayerShell as LayerShell  # noqa
 
 
-class OBSStatusWidget(Gtk.Application):
-    def __init__(self) -> None:
+class OBS_Dash_Widget(Gtk.Application):
+    def __init__(self, host: str, port: int) -> None:
         super().__init__()
         self._client = OBSClient(
+            host,
+            port,
             update_label=self.update_label
         )
 

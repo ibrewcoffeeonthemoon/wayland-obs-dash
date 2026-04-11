@@ -8,8 +8,8 @@ import simpleobsws
 class OBSClient:
     def __init__(
         self,
-        host: str = 'localhost',
-        port: int = 4455,
+        host: str,
+        port: int,
         *,
         update_label: Callable[[str], None],
     ) -> None:
