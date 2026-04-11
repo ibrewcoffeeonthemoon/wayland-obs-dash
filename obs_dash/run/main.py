@@ -1,10 +1,11 @@
 import typer
 
-from .overlay import overlay
+from .widget import OBSStatusWidget
 
 app = typer.Typer()
 
 
 @app.command(help='run obs-dash')
 def run() -> None:
-    overlay()
+    widget = OBSStatusWidget()
+    widget.run(None)

@@ -71,8 +71,3 @@ class OBSStatusWidget(Gtk.Application):
 
         win.set_child(box)
         win.present()
-
-
-def overlay() -> None:
-    app = OBSStatusWidget()
-    app.run(None)
