@@ -1,11 +1,13 @@
 import asyncio
+import threading
+from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Callable
+from typing import AsyncIterator, Callable
 
 import simpleobsws
 
 
-class OBSClient:
+class OBS_Client:
     def __init__(
         self,
         host: str,
@@ -13,8 +15,10 @@ class OBSClient:
         *,
         update_label: Callable[[str], None],
     ) -> None:
-        self.update_label = update_label
-        self.running = True
+        # state
+        self._running = True
+        # callbacks
+        self._update_label = update_label
         # websocket
         self._ws = simpleobsws.WebSocketClient(
             url=f'ws://{host}:{port}',
@@ -22,34 +26,41 @@ class OBSClient:
             identification_parameters=simpleobsws.IdentificationParameters(ignoreNonFatalRequestChecks=False),
         )
 
-    async def connect(self) -> None:
-        await self._ws.connect()
-        await self._ws.wait_until_identified()
+    @asynccontextmanager
+    async def _connection(self) -> AsyncIterator[simpleobsws.WebSocketClient]:
+        try:
+            await self._ws.connect()
+            await self._ws.wait_until_identified()
+            yield self._ws
+        finally:
+            await self._ws.disconnect()
 
     def stop(self) -> None:
-        self.running = False
+        self._running = False
 
     async def _worker(self) -> None:
-        # connect
-        await self.connect()
+        # connection
+        async with self._connection() as conn:
+            # main logic starts
 
-        request = simpleobsws.Request('GetVersion')  # Build a Request object
-        response = await self._ws.call(request)  # Perform the request
-        if response.ok():
-            print(f'Request succeeded! Response data: {response.responseData}')
+            request = simpleobsws.Request('GetVersion')
+            response = await conn.call(request)
 
-        n = 0
-        while self.running:
-            n += 1
-            text = f'{int(n // 3600):02d}:{int((n % 3600) // 60):02d}:{n % 60:02d}'
+            if response.ok():
+                print(f'Request succeeded! Response data: {response.responseData}')
 
-            self.update_label(text)
+            n = 0
+            while self._running:
+                n += 1
+                text = f'{int(n // 3600):02d}:{int((n % 3600) // 60):02d}:{n % 60:02d}'
 
-            # heartbeat
-            await asyncio.sleep(1)
+                self._update_label(text)
 
-        # disconnect
-        await self._ws.disconnect()
+                # heartbeat
+                await asyncio.sleep(1)
 
     def run(self) -> None:
-        asyncio.run(self._worker())
+        def launch_worker() -> None:
+            asyncio.run(self._worker())
+        thread = threading.Thread(target=launch_worker, daemon=True)
+        thread.start()
