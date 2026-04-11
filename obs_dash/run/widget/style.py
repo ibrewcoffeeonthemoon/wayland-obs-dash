@@ -5,14 +5,14 @@ CSS = '''
         transition: background-color 0.5s ease; /* Smooth color transition */
         background-color: #828282;
     }
-    .status-disconnected {
+    .disconnected {
         background-color: #828282;
     }
-    .status-standby {
-        background-color: #2ecc71;
+    .connected {
+        background-color: #0d6b02;
     }
-    .status-recording {
-        background-color: #e74c3c;
+    .recording {
+        background-color: #a1000b;
     }
     label {
         color: white;

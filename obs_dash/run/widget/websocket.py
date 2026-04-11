@@ -13,12 +13,14 @@ class OBS_Client:
         host: str,
         port: int,
         *,
-        update_label: Callable[[str], None],
+        set_text: Callable[[str], None],
+        set_css_classes: Callable[[str], None],
     ) -> None:
         # state
         self._running = True
         # callbacks
-        self._update_label = update_label
+        self._set_text = set_text
+        self._set_css_classes = set_css_classes
         # websocket
         self._ws = simpleobsws.WebSocketClient(
             url=f'ws://{host}:{port}',
@@ -34,6 +36,7 @@ class OBS_Client:
             yield self._ws
         finally:
             await self._ws.disconnect()
+            self._set_css_classes('disconnected')
 
     def stop(self) -> None:
         self._running = False
@@ -47,6 +50,7 @@ class OBS_Client:
             response = await conn.call(request)
 
             if response.ok():
+                self._set_css_classes('connected')
                 print(f'Request succeeded! Response data: {response.responseData}')
 
             n = 0
@@ -54,7 +58,7 @@ class OBS_Client:
                 n += 1
                 text = f'{int(n // 3600):02d}:{int((n % 3600) // 60):02d}:{n % 60:02d}'
 
-                self._update_label(text)
+                self._set_text(text)
 
                 # heartbeat
                 await asyncio.sleep(1)

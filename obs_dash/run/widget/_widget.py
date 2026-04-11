@@ -28,8 +28,12 @@ class OBS_Dash_Widget(Gtk.Application):
         self._client = OBS_Client(
             host,
             port,
-            update_label=self.set_text
+            set_text=self.set_text,
+            set_css_classes=self.set_css_classes,
         )
+        # UI components
+        self._label = Gtk.Label(label='00:00:00')
+        self._box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
     def do_activate(self) -> None:
         # Create a window
@@ -48,14 +52,12 @@ class OBS_Dash_Widget(Gtk.Application):
         LayerShell.set_margin(win, LayerShell.Edge.RIGHT, 20)
 
         # 4. UI Components
-        self.label = Gtk.Label(label='00:00:00')
-        self.label.set_halign(Gtk.Align.CENTER)
-        self.label.set_valign(Gtk.Align.CENTER)
+        self._label.set_halign(Gtk.Align.CENTER)
+        self._label.set_valign(Gtk.Align.CENTER)
 
         # Container to act as the "Red Box"
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        box.set_size_request(120, 50)
-        box.append(self.label)
+        self._box.set_size_request(120, 50)
+        self._box.append(self._label)
 
         # Styling the Red Box via CSS
         css_provider = Gtk.CssProvider()
@@ -67,7 +69,7 @@ class OBS_Dash_Widget(Gtk.Application):
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         )
 
-        win.set_child(box)
+        win.set_child(self._box)
         win.present()
 
         # launch the client
@@ -75,6 +77,12 @@ class OBS_Dash_Widget(Gtk.Application):
 
     def set_text(self, text: str) -> None:
         def callback(text: str) -> bool:
-            self.label.set_text(text)
+            self._label.set_text(text)
             return False  # Required for idle_add one-shot calls
         GLib.idle_add(callback, text)
+
+    def set_css_classes(self, *names: str) -> None:
+        def callback(*names: str) -> bool:
+            self._box.set_css_classes(*names)
+            return False
+        GLib.idle_add(callback, names)
