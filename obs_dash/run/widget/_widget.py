@@ -6,6 +6,7 @@ from ctypes import CDLL
 import cairo
 import gi
 
+from .style import CSS
 from .websocket import OBS_Client
 
 # pre-loading
@@ -58,18 +59,7 @@ class OBS_Dash_Widget(Gtk.Application):
 
         # Styling the Red Box via CSS
         css_provider = Gtk.CssProvider()
-        css_provider.load_from_data('''
-            box {
-                background-color: #ff0000;
-                border-radius: 12px;
-                padding: 10px; /* Gives the text some breathing room */
-            }
-            label {
-                color: white;
-                font-weight: 800; /* Extra bold */
-                font-size: 32px;  /* Much larger text */
-            }
-        ''', -1)
+        css_provider.load_from_data(CSS, -1)
 
         Gtk.StyleContext.add_provider_for_display(
             win.get_display(),
