@@ -1,4 +1,4 @@
-import time
+import asyncio
 from typing import Callable
 
 
@@ -13,7 +13,7 @@ class OBSClient:
     def stop(self) -> None:
         self.running = False
 
-    def run(self) -> None:
+    async def _worker(self) -> None:
         n = 0
         while self.running:
             n += 1
@@ -22,4 +22,7 @@ class OBSClient:
             self.update_label(text)
 
             # heartbeat
-            time.sleep(1)
+            await asyncio.sleep(1)
+
+    def run(self) -> None:
+        asyncio.run(self._worker())
