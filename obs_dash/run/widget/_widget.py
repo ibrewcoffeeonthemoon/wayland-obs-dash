@@ -27,7 +27,7 @@ class OBS_Dash_Widget(Gtk.Application):
         self._client = OBS_Client(
             host,
             port,
-            update_label=self.update_label
+            update_label=self.set_text
         )
 
     def do_activate(self) -> None:
@@ -83,7 +83,7 @@ class OBS_Dash_Widget(Gtk.Application):
         # launch the client
         self._client.run()
 
-    def update_label(self, text: str) -> None:
+    def set_text(self, text: str) -> None:
         def callback(text: str) -> bool:
             self.label.set_text(text)
             return False  # Required for idle_add one-shot calls
