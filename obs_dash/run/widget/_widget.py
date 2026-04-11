@@ -6,7 +6,7 @@ from ctypes import CDLL
 import cairo
 import gi
 
-from .websocket import OBSClient
+from .websocket import OBS_Client
 
 # pre-loading
 CDLL('libgtk4-layer-shell.so')
@@ -21,10 +21,12 @@ from gi.repository import Gdk, Gtk, GLib  # noqa
 from gi.repository import Gtk4LayerShell as LayerShell  # noqa
 
 
-class OBSStatusWidget(Gtk.Application):
-    def __init__(self) -> None:
+class OBS_Dash_Widget(Gtk.Application):
+    def __init__(self, host: str, port: int) -> None:
         super().__init__()
-        self._client = OBSClient(
+        self._client = OBS_Client(
+            host,
+            port,
             update_label=self.update_label
         )
 
@@ -78,9 +80,8 @@ class OBSStatusWidget(Gtk.Application):
         win.set_child(box)
         win.present()
 
-        # worker thread
-        t = threading.Thread(target=self._client.run, daemon=True)
-        t.start()
+        # launch the client
+        self._client.run()
 
     def update_label(self, text: str) -> None:
         def callback(text: str) -> bool:

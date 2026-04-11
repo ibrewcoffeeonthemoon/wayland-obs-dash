@@ -1,5 +1,5 @@
-from ._widget import OBSStatusWidget
+from ._widget import OBS_Dash_Widget
 
 __all__ = [
-    'OBSStatusWidget',
+    'OBS_Dash_Widget',
 ]

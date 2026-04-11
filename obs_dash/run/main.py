@@ -1,11 +1,17 @@
-import typer
+from typing import Annotated
 
-from .widget import OBSStatusWidget
+import typer
+from typer import Option
+
+from .widget import OBS_Dash_Widget
 
 app = typer.Typer()
 
 
 @app.command(help='run obs-dash')
-def run() -> None:
-    widget = OBSStatusWidget()
+def run(
+    host: Annotated[str, Option('--host', '-h', help='OBS websocket host')] = 'localhost',
+    port: Annotated[int, Option('--port', '-p', help='OBS websocket port',)] = 4455,
+) -> None:
+    widget = OBS_Dash_Widget(host, port)
     widget.run(None)

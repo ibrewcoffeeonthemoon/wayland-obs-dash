@@ -13,6 +13,7 @@ dependencies = [
     "typer",
     "PyGObject",
     "pycairo",
+    "simpleobsws>=1.4.3",
 ]
 requires-python = ">=3.14"
 
