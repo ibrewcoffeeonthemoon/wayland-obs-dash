@@ -6,7 +6,6 @@ from typing import AsyncIterator, Callable
 
 import simpleobsws
 from simpleobsws import Request, WebSocketClient
-from websockets.http11 import d
 
 
 class OBS_Client:
@@ -41,13 +40,38 @@ class OBS_Client:
 
     async def _ping(self, conn: WebSocketClient) -> bool:
         try:
-            response = await conn.call(Request('GetVersion'))
-            if response.ok():
-                self._set_css_classes('connected')
-                return True
-        except Exception:
-            self._set_css_classes('disconnect')
-            return False
+            # fetch GetVersion
+            res = await conn.call(Request('GetVersion'))
+            # assert valid response
+            assert res.ok()
+            # return ping success
+            return True
+        except AssertionError:
+            pass
+        except Exception as e:
+            print(e)
+        # set to default state if anything wrong
+        self._set_css_classes('disconnect')
+        return False
+
+    async def _check_record_status(self, conn: WebSocketClient) -> None:
+        try:
+            # fetch GetRecordStatus
+            res = await conn.call(Request('GetRecordStatus'))
+            d = res.responseData
+            # assert outputActive
+            assert d['outputActive']
+            # set timecode and state
+            timecode = d['outputTimecode'][:-4]
+            self._set_text(timecode)
+            self._set_css_classes('recording')
+            return
+        except AssertionError:
+            pass
+        except Exception as e:
+            print(e)
+        # set to default state if anything wrong
+        self._set_css_classes('connected')
 
     def stop(self) -> None:
         self._running = False
@@ -65,16 +89,13 @@ class OBS_Client:
         while self._running:
             # connection
             async with self._connection() as conn:
-                # main logic starts
-                n = 0
+                # main logic loop
                 while self._running:
+                    # check connection
                     if not await self._ping(conn):
                         break
-
-                    n += 1
-                    text = f'{int(n // 3600):02d}:{int((n % 3600) // 60):02d}:{n % 60:02d}'
-
-                    self._set_text(text)
+                    # check record status
+                    await self._check_record_status(conn)
 
                     # heartbeat
                     await asyncio.sleep(1)
