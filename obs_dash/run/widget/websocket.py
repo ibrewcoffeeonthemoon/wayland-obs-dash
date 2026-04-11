@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import AsyncIterator, Callable
 
 import simpleobsws
+from simpleobsws import Request, WebSocketClient
+from websockets.http11 import d
 
 
 class OBS_Client:
@@ -28,40 +30,57 @@ class OBS_Client:
             identification_parameters=simpleobsws.IdentificationParameters(ignoreNonFatalRequestChecks=False),
         )
 
-    @asynccontextmanager
-    async def _connection(self) -> AsyncIterator[simpleobsws.WebSocketClient]:
+    async def _connect(self) -> None:
+        await self._ws.connect()
+        await self._ws.wait_until_identified()
+        self._set_css_classes('connected')
+
+    async def _disconnect(self) -> None:
+        await self._ws.disconnect()
+        self._set_css_classes('disconnected')
+
+    async def _ping(self, conn: WebSocketClient) -> bool:
         try:
-            await self._ws.connect()
-            await self._ws.wait_until_identified()
-            yield self._ws
-        finally:
-            await self._ws.disconnect()
-            self._set_css_classes('disconnected')
+            response = await conn.call(Request('GetVersion'))
+            if response.ok():
+                self._set_css_classes('connected')
+                return True
+        except Exception:
+            self._set_css_classes('disconnect')
+            return False
 
     def stop(self) -> None:
         self._running = False
 
+    @asynccontextmanager
+    async def _connection(self) -> AsyncIterator[simpleobsws.WebSocketClient]:
+        try:
+            await self._connect()
+            yield self._ws
+        finally:
+            await self._disconnect()
+
     async def _worker(self) -> None:
-        # connection
-        async with self._connection() as conn:
-            # main logic starts
+        # auto reconnect loop
+        while self._running:
+            # connection
+            async with self._connection() as conn:
+                # main logic starts
+                n = 0
+                while self._running:
+                    if not await self._ping(conn):
+                        break
 
-            request = simpleobsws.Request('GetVersion')
-            response = await conn.call(request)
+                    n += 1
+                    text = f'{int(n // 3600):02d}:{int((n % 3600) // 60):02d}:{n % 60:02d}'
 
-            if response.ok():
-                self._set_css_classes('connected')
-                print(f'Request succeeded! Response data: {response.responseData}')
+                    self._set_text(text)
 
-            n = 0
-            while self._running:
-                n += 1
-                text = f'{int(n // 3600):02d}:{int((n % 3600) // 60):02d}:{n % 60:02d}'
+                    # heartbeat
+                    await asyncio.sleep(1)
 
-                self._set_text(text)
-
-                # heartbeat
-                await asyncio.sleep(1)
+            # delay before re-connect
+            await asyncio.sleep(1)
 
     def run(self) -> None:
         def launch_worker() -> None:
