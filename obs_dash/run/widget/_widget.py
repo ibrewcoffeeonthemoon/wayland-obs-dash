@@ -72,6 +72,13 @@ class OBS_Dash_Widget(Gtk.Application):
         win.set_child(self._box)
         win.present()
 
+        # CRITICAL: Force mouse passthrough for the entire screen. This must happen after win.present()
+        # Create an empty cairo region and assign
+        # In GTK4 Python, Gdk.surface.set_input_region takes a cairo.Region
+        if (native := win.get_native()) is not None and (surface := native.get_surface()) is not None:
+            empty_region = cairo.Region()
+            surface.set_input_region(empty_region)
+
         # launch the client
         self._client.run()
 
