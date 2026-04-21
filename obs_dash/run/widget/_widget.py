@@ -62,11 +62,10 @@ class OBS_Dash_Widget(Gtk.Application):
         # Styling the Red Box via CSS
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(CSS, -1)
-
         Gtk.StyleContext.add_provider_for_display(
             win.get_display(),
             css_provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+            Gtk.STYLE_PROVIDER_PRIORITY_USER,
         )
 
         win.set_child(self._box)
