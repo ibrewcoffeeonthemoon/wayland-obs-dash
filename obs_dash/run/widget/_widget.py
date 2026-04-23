@@ -1,6 +1,5 @@
 # For GTK4 Layer Shell to get linked before libwayland-client we must explicitly load it before importing with gi
 # ref: https://github.com/wmww/gtk4-layer-shell/blob/main/examples/simple-example.py
-import threading
 from ctypes import CDLL
 
 import cairo
@@ -25,12 +24,16 @@ from gi.repository import Gtk4LayerShell as LayerShell  # noqa
 class OBS_Dash_Widget(Gtk.Application):
     def __init__(self, host: str, port: int, preview: bool) -> None:
         super().__init__()
+        # settings
+        self._preview = preview
+        # client
         self._client = OBS_Client(
             host,
             port,
             preview,
             set_text=self.set_text,
             set_css_classes=self.set_css_classes,
+            set_preview_image=self.set_preview_image,
         )
         # UI components
         self._label = Gtk.Label(label='00:00:00')
@@ -93,3 +96,9 @@ class OBS_Dash_Widget(Gtk.Application):
             self._box.set_css_classes(*names)
             return False
         GLib.idle_add(callback, names)
+
+    def set_preview_image(self, image: bytes) -> None:
+        def callback(image: bytes) -> bool:
+            # TODO: render the image into components
+            return False
+        GLib.idle_add(callback, image)

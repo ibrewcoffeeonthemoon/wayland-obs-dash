@@ -17,12 +17,16 @@ class OBS_Client:
         *,
         set_text: Callable[[str], None],
         set_css_classes: Callable[[str], None],
+        set_preview_image: Callable[[bytes], None],
     ) -> None:
+        # settings
+        self._preview = preview
         # state
         self._running = True
         # callbacks
         self._set_text = set_text
         self._set_css_classes = set_css_classes
+        self._set_preview_image = set_preview_image
         # websocket
         self._ws = simpleobsws.WebSocketClient(
             url=f'ws://{host}:{port}',
@@ -80,6 +84,17 @@ class OBS_Client:
         # set to default state if anything wrong
         self._set_css_classes('connected')
 
+    async def _fetch_source_screenshot(self, conn: WebSocketClient) -> None:
+        try:
+            # call GetSourceScreenshot, image resolution about 320x240 is enough
+            # parse result into some data image
+            # there should be a call back 'self._set_preview_image(image) from Gtk widget, use that
+            # then the call back should set teh preview image using the base64 data
+            pass
+        except Exception as e:
+            print(e)
+            # if some error happens, just set it to some error preview screen, maybe a bloddy red preview screen?
+
     def stop(self) -> None:
         self._running = False
 
@@ -103,6 +118,10 @@ class OBS_Client:
                         break
                     # check record status
                     await self._check_record_status(conn)
+
+                    # fetch source screenshot
+                    if self._preview:
+                        await self._fetch_source_screenshot(conn)
 
                     # heartbeat
                     await asyncio.sleep(1)
