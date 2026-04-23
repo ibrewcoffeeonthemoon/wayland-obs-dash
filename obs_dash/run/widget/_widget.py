@@ -57,7 +57,6 @@ class OBS_Dash_Widget(Gtk.Application):
         # Add Conditional Preview Widget
         if self._preview_image is not None:
             self._preview_image.set_size_request(114, 48)
-            # self._preview_image.set_pixel_size(114)
             self._box.append(self._preview_image)
 
         # Add Timer Label
@@ -99,12 +98,19 @@ class OBS_Dash_Widget(Gtk.Application):
             return False
         GLib.idle_add(callback, names)
 
-    def set_preview_image(self, image: bytes) -> None:
-        def callback(image: bytes) -> bool:
+    def set_preview_image(self, image: bytes | None) -> None:
+        def callback(image: bytes | None) -> bool:
+            # return when preview is disabled
             if self._preview_image is None:
                 return False
+            # return when ping failed
+            if image is None:
+                self._preview_image.set_paintable(None)
+                return False
+            # make new texture from the bytes
             gbytes = GLib.Bytes.new(image)
             texture = Gdk.Texture.new_from_bytes(gbytes)
+            # paint the texture
             self._preview_image.set_paintable(texture)
             return False
         GLib.idle_add(callback, image)

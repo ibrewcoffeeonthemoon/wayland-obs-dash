@@ -18,7 +18,7 @@ class OBS_Client:
         *,
         set_text: Callable[[str], None],
         set_css_classes: Callable[[str], None],
-        set_preview_image: Callable[[bytes], None],
+        set_preview_image: Callable[[bytes | None], None],
     ) -> None:
         # settings
         self._preview = preview
@@ -64,6 +64,7 @@ class OBS_Client:
             print(e)
         # set to default state if anything wrong
         self._set_css_classes('disconnect')
+        self._set_preview_image(None)
         return False
 
     async def _check_record_status(self, conn: WebSocketClient) -> None:
@@ -92,7 +93,7 @@ class OBS_Client:
                 'sourceName': 'Screen Capture (PipeWire)',
                 'imageFormat': 'jpg',
                 'imageWidth': 114,
-                'imageHeight': 48,
+                # 'imageHeight': 48,
             }))
             # parse result into image bytes
             d = res.responseData
@@ -101,8 +102,8 @@ class OBS_Client:
             # set image bytes
             self._set_preview_image(image_bytes)
         except Exception as e:
+            self._set_preview_image(None)
             print(e)
-            # if some error happens, just set it to some error preview screen, maybe a bloddy red preview screen?
 
     def stop(self) -> None:
         self._running = False
