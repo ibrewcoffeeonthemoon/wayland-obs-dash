@@ -91,8 +91,8 @@ class OBS_Client:
             res = await conn.call(Request('GetSourceScreenshot', {
                 'sourceName': 'Screen Capture (PipeWire)',
                 'imageFormat': 'jpg',
-                'imageWidth': 640,
-                'imageHeight': 480,
+                'imageWidth': 114,
+                'imageHeight': 48,
             }))
             # parse result into image bytes
             d = res.responseData

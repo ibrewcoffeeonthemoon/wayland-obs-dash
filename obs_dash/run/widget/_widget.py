@@ -64,7 +64,8 @@ class OBS_Dash_Widget(Gtk.Application):
 
         # Conditional Preview Widget
         if self._preview_image is not None:
-            self._preview_image.set_size_request(64, 48)
+            self._preview_image.set_size_request(114, 48)
+            self._preview_image.set_pixel_size(114)
             self._box.append(self._preview_image)
 
         # Styling the Red Box via CSS
