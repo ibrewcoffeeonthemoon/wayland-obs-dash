@@ -12,7 +12,7 @@ app = typer.Typer()
 def run(
     host: Annotated[str, Option('--host', '-h', help='OBS websocket host')] = 'localhost',
     port: Annotated[int, Option('--port', '-p', help='OBS websocket port',)] = 4455,
-    preview: Annotated[bool, Option('--preview', help='Enable source video preview window')] = False,
+    preview: Annotated[bool, Option(help='Enable source video preview window')] = True,
 ) -> None:
     widget = OBS_Dash_Widget(host, port, preview)
     widget.run(None)
