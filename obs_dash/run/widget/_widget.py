@@ -42,34 +42,30 @@ class OBS_Dash_Widget(Gtk.Application):
         # Create a window
         win = Gtk.ApplicationWindow(application=self)
 
-        # 1. Initialize Layer Shell
+        # Initialize Layer Shell
         LayerShell.init_for_window(win)
 
-        # 2. Set Layer (Top means above normal windows, Overlay means above everything)
+        # Set Layer (Top means above normal windows, Overlay means above everything)
         LayerShell.set_layer(win, LayerShell.Layer.OVERLAY)
 
-        # 3. Position the widget (Top Right corner)
+        # Position the widget (Top Right corner)
         LayerShell.set_anchor(win, LayerShell.Edge.TOP, True)
         LayerShell.set_anchor(win, LayerShell.Edge.RIGHT, True)
         LayerShell.set_margin(win, LayerShell.Edge.TOP, 20)
         LayerShell.set_margin(win, LayerShell.Edge.RIGHT, 20)
 
-        # 4. UI Components
-        self._label.set_halign(Gtk.Align.CENTER)
-        self._label.set_valign(Gtk.Align.CENTER)
-
-        # Container to act as the "Red Box"
-        # self._box.set_size_request(120, 50)
-        self._box.append(self._label)
-        self._box.set_spacing(0)
-
-        # Conditional Preview Widget
+        # Add Conditional Preview Widget
         if self._preview_image is not None:
             self._preview_image.set_size_request(114, 48)
             # self._preview_image.set_pixel_size(114)
             self._box.append(self._preview_image)
 
-        # Styling the Red Box via CSS
+        # Add Timer Label
+        self._label.set_halign(Gtk.Align.CENTER)
+        self._label.set_valign(Gtk.Align.CENTER)
+        self._box.append(self._label)
+
+        # Styling the Timer Label via CSS
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(CSS, -1)
         Gtk.StyleContext.add_provider_for_display(
