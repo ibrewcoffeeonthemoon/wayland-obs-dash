@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -86,11 +87,19 @@ class OBS_Client:
 
     async def _fetch_source_screenshot(self, conn: WebSocketClient) -> None:
         try:
-            # call GetSourceScreenshot, image resolution about 320x240 is enough
-            # parse result into some data image
-            # there should be a call back 'self._set_preview_image(image) from Gtk widget, use that
-            # then the call back should set teh preview image using the base64 data
-            pass
+            # fetch source screenshot
+            res = await conn.call(Request('GetSourceScreenshot', {
+                'sourceName': 'Screen Capture (PipeWire)',
+                'imageFormat': 'jpg',
+                'imageWidth': 640,
+                'imageHeight': 480,
+            }))
+            # parse result into image bytes
+            d = res.responseData
+            image_data = d['imageData'].split(',')[1].strip()
+            image_bytes = base64.b64decode(image_data)
+            # set image bytes
+            self._set_preview_image(image_bytes)
         except Exception as e:
             print(e)
             # if some error happens, just set it to some error preview screen, maybe a bloddy red preview screen?

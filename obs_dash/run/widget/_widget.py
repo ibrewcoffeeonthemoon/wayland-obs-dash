@@ -103,6 +103,10 @@ class OBS_Dash_Widget(Gtk.Application):
 
     def set_preview_image(self, image: bytes) -> None:
         def callback(image: bytes) -> bool:
-            # TODO: render the image into components
+            if self._preview_image is None:
+                return False
+            gbytes = GLib.Bytes.new(image)
+            texture = Gdk.Texture.new_from_bytes(gbytes)
+            self._preview_image.set_from_paintable(texture)
             return False
         GLib.idle_add(callback, image)
