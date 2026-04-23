@@ -88,9 +88,12 @@ class OBS_Client:
 
     async def _fetch_source_screenshot(self, conn: WebSocketClient) -> None:
         try:
+            # fetch current scene name
+            res = await conn.call(Request('GetSceneList'))
+            scene_name = res.responseData['currentProgramSceneName']
             # fetch source screenshot
             res = await conn.call(Request('GetSourceScreenshot', {
-                'sourceName': 'Screen Capture (PipeWire)',
+                'sourceName': scene_name,
                 'imageFormat': 'jpg',
                 'imageWidth': 114,
                 # 'imageHeight': 48,
