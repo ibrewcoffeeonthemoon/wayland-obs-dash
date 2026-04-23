@@ -36,7 +36,7 @@ class OBS_Dash_Widget(Gtk.Application):
         # UI components
         self._label = Gtk.Label(label='00:00:00')
         self._box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self._preview_image = Gtk.Image() if preview else None
+        self._preview_image = Gtk.Picture() if preview else None
 
     def do_activate(self) -> None:
         # Create a window
@@ -59,13 +59,14 @@ class OBS_Dash_Widget(Gtk.Application):
         self._label.set_valign(Gtk.Align.CENTER)
 
         # Container to act as the "Red Box"
-        self._box.set_size_request(120, 50)
+        # self._box.set_size_request(120, 50)
         self._box.append(self._label)
+        self._box.set_spacing(0)
 
         # Conditional Preview Widget
         if self._preview_image is not None:
             self._preview_image.set_size_request(114, 48)
-            self._preview_image.set_pixel_size(114)
+            # self._preview_image.set_pixel_size(114)
             self._box.append(self._preview_image)
 
         # Styling the Red Box via CSS
@@ -108,6 +109,6 @@ class OBS_Dash_Widget(Gtk.Application):
                 return False
             gbytes = GLib.Bytes.new(image)
             texture = Gdk.Texture.new_from_bytes(gbytes)
-            self._preview_image.set_from_paintable(texture)
+            self._preview_image.set_paintable(texture)
             return False
         GLib.idle_add(callback, image)
