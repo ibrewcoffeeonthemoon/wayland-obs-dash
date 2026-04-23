@@ -15,13 +15,17 @@ class OBS_Client:
         host: str,
         port: int,
         preview: bool,
+        preview_width: int,
+        preview_height: int,
         *,
         set_text: Callable[[str], None],
         set_css_classes: Callable[[str], None],
         set_preview_image: Callable[[bytes | None], None],
     ) -> None:
-        # settings
+        # attrs
         self._preview = preview
+        self._preview_width = preview_width
+        self._preview_height = preview_height
         # state
         self._running = True
         # callbacks
@@ -95,8 +99,8 @@ class OBS_Client:
             res = await conn.call(Request('GetSourceScreenshot', {
                 'sourceName': scene_name,
                 'imageFormat': 'jpg',
-                'imageWidth': 114,
-                # 'imageHeight': 48,
+                'imageWidth': self._preview_width,
+                'imageHeight': self._preview_height,
             }))
             # parse result into image bytes
             d = res.responseData
