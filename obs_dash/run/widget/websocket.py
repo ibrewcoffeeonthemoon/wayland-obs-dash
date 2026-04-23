@@ -13,6 +13,7 @@ class OBS_Client:
         self,
         host: str,
         port: int,
+        preview: bool,
         *,
         set_text: Callable[[str], None],
         set_css_classes: Callable[[str], None],

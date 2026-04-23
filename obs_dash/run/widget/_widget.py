@@ -23,11 +23,12 @@ from gi.repository import Gtk4LayerShell as LayerShell  # noqa
 
 
 class OBS_Dash_Widget(Gtk.Application):
-    def __init__(self, host: str, port: int) -> None:
+    def __init__(self, host: str, port: int, preview: bool) -> None:
         super().__init__()
         self._client = OBS_Client(
             host,
             port,
+            preview,
             set_text=self.set_text,
             set_css_classes=self.set_css_classes,
         )
