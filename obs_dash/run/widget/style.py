@@ -8,6 +8,9 @@ CSS = '''
         transition: background-color 0.5s ease; /* Smooth color transition */
         background-color: #828282;
     }
+    picture {
+        border-radius: 6px;
+    }
     .disconnected {
         background-color: #828282;
     }

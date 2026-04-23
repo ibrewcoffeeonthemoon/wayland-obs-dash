@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -13,15 +14,24 @@ class OBS_Client:
         self,
         host: str,
         port: int,
+        preview: bool,
+        preview_width: int,
+        preview_height: int,
         *,
         set_text: Callable[[str], None],
         set_css_classes: Callable[[str], None],
+        set_preview_image: Callable[[bytes | None], None],
     ) -> None:
+        # attrs
+        self._preview = preview
+        self._preview_width = preview_width
+        self._preview_height = preview_height
         # state
         self._running = True
         # callbacks
         self._set_text = set_text
         self._set_css_classes = set_css_classes
+        self._set_preview_image = set_preview_image
         # websocket
         self._ws = simpleobsws.WebSocketClient(
             url=f'ws://{host}:{port}',
@@ -58,6 +68,7 @@ class OBS_Client:
             print(e)
         # set to default state if anything wrong
         self._set_css_classes('disconnect')
+        self._set_preview_image(None)
         return False
 
     async def _check_record_status(self, conn: WebSocketClient) -> None:
@@ -78,6 +89,28 @@ class OBS_Client:
             print(e)
         # set to default state if anything wrong
         self._set_css_classes('connected')
+
+    async def _fetch_source_screenshot(self, conn: WebSocketClient) -> None:
+        try:
+            # fetch current scene name
+            res = await conn.call(Request('GetSceneList'))
+            scene_name = res.responseData['currentProgramSceneName']
+            # fetch source screenshot
+            res = await conn.call(Request('GetSourceScreenshot', {
+                'sourceName': scene_name,
+                'imageFormat': 'jpg',
+                'imageWidth': self._preview_width,
+                'imageHeight': self._preview_height,
+            }))
+            # parse result into image bytes
+            d = res.responseData
+            image_data = d['imageData'].split(',')[1].strip()
+            image_bytes = base64.b64decode(image_data)
+            # set image bytes
+            self._set_preview_image(image_bytes)
+        except Exception as e:
+            self._set_preview_image(None)
+            print(e)
 
     def stop(self) -> None:
         self._running = False
@@ -102,6 +135,10 @@ class OBS_Client:
                         break
                     # check record status
                     await self._check_record_status(conn)
+
+                    # fetch source screenshot
+                    if self._preview:
+                        await self._fetch_source_screenshot(conn)
 
                     # heartbeat
                     await asyncio.sleep(1)
