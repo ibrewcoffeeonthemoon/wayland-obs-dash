@@ -33,4 +33,17 @@ CSS = '''
         font-size: 24px;
         margin: auto;
     }
+    levelbar block.empty {
+        background-color: transparent;
+        border-color: transparent;
+    }
+    levelbar block.low {
+        background-color: #2ec27e; /* OBS Green */
+    }
+    levelbar block.high {
+        background-color: #f5c211; /* OBS Yellow */
+    }
+    levelbar block.full {
+        background-color: #e01b24; /* OBS Red */
+    }
 '''

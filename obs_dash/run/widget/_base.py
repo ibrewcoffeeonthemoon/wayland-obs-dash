@@ -50,6 +50,9 @@ class OBS_Dash_Widget(Gtk.Application):
             bar.set_inverted(True)
             bar.set_min_value(0.0)
             bar.set_max_value(1.0)
+            bar.add_offset_value('low', 0.70)
+            bar.add_offset_value('high', 0.85)
+            bar.add_offset_value('full', 0.95)
 
     def do_activate(self) -> None:
         # Create a window
