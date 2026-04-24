@@ -34,7 +34,7 @@ class OBS_Dash_Widget(Gtk.Application):
             args,
             set_text=self.set_text,
             set_css_classes=self.set_css_classes,
-            set_preview_image=self.set_preview_image,
+            set_video_picture_image=self.set_video_picture_image,
             set_audio_levelbar_values=self.set_audio_levelbar_values,
         )
         # UI components
@@ -117,7 +117,7 @@ class OBS_Dash_Widget(Gtk.Application):
             return False
         GLib.idle_add(callback, names)
 
-    def set_preview_image(self, image: bytes | None) -> None:
+    def set_video_picture_image(self, image: bytes | None) -> None:
         # return when preview is disabled
         if not self._show_video:
             return
