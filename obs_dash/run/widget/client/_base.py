@@ -4,8 +4,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import AsyncIterator, Callable
 
-import simpleobsws
-from simpleobsws import Request, WebSocketClient
+from simpleobsws import IdentificationParameters, Request, WebSocketClient
 
 from .video_preview import VideoPreviewer
 
@@ -29,10 +28,10 @@ class OBS_Client:
         self._set_css_classes = set_css_classes
         self._set_preview_image = set_preview_image
         # websocket
-        self._ws = simpleobsws.WebSocketClient(
+        self._ws = WebSocketClient(
             url=f'ws://{host}:{port}',
             password=(Path.home() / '.obs-studio-password').read_text().strip(),
-            identification_parameters=simpleobsws.IdentificationParameters(ignoreNonFatalRequestChecks=False),
+            identification_parameters=IdentificationParameters(ignoreNonFatalRequestChecks=False),
         )
         # workers
         self._video_previewer = VideoPreviewer(
@@ -94,7 +93,7 @@ class OBS_Client:
         self._set_css_classes('connected')
 
     @asynccontextmanager
-    async def _connection(self) -> AsyncIterator[simpleobsws.WebSocketClient]:
+    async def _connection(self) -> AsyncIterator[WebSocketClient]:
         try:
             await self._connect()
             yield self._ws
@@ -104,15 +103,17 @@ class OBS_Client:
     async def _worker(self) -> None:
         # auto reconnect loop
         while True:
-            # connection
             async with (
+                # connection
                 self._connection() as conn,
+                # tasks
                 self._video_previewer.run(conn)
             ):
                 # start main logic loop
                 while True:
                     # check connection
                     if not await self._ping(conn):
+                        # when ping failed, the loop breaks, all task is cancelled
                         break
                     # check record status
                     await self._check_record_status(conn)
@@ -123,7 +124,9 @@ class OBS_Client:
             await asyncio.sleep(1)
 
     def run(self) -> None:
+        # asyncio worker
         def launch_worker() -> None:
             asyncio.run(self._worker())
+        # start asyncio worker in a separated thread
         thread = threading.Thread(target=launch_worker, daemon=True)
         thread.start()

@@ -17,6 +17,7 @@ def run(
     preview_height: Annotated[int, Option(help='Preview window height')] = 48,
     preview_interval: Annotated[float, Option(help='Preview snapshot sampling interval')] = 0.2,
 ) -> None:
+    # widget
     widget = OBS_Dash_Widget(
         host,
         port,
@@ -25,4 +26,5 @@ def run(
         preview_height,
         preview_interval,
     )
+    # call the run function from Gtk.Application
     widget.run(None)
