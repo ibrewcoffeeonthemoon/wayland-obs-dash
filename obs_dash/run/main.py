@@ -3,6 +3,7 @@ from typing import Annotated
 import typer
 from typer import Option
 
+from .args import Args
 from .widget import OBS_Dash_Widget
 
 app = typer.Typer()
@@ -12,15 +13,21 @@ app = typer.Typer()
 def run(
     host: Annotated[str, Option('--host', '-h', help='OBS websocket host')] = 'localhost',
     port: Annotated[int, Option('--port', '-p', help='OBS websocket port',)] = 4455,
-    preview: Annotated[bool, Option(help='Enable source video preview window')] = True,
-    preview_width: Annotated[int, Option(help='Preview window width')] = 114,
-    preview_height: Annotated[int, Option(help='Preview window height')] = 48,
+    show_video: Annotated[bool, Option(help='Enable source video preview window')] = True,
+    video_width: Annotated[int, Option(help='Preview window width')] = 114,
+    video_height: Annotated[int, Option(help='Preview window height')] = 48,
+    video_sampling_interval: Annotated[float, Option(help='Preview snapshot sampling interval')] = 0.2,
 ) -> None:
-    widget = OBS_Dash_Widget(
+    # params
+    args = Args(
         host,
         port,
-        preview,
-        preview_width,
-        preview_height,
+        show_video,
+        video_width,
+        video_height,
+        video_sampling_interval,
     )
+    # widget
+    widget = OBS_Dash_Widget(args)
+    # call the run function from Gtk.Application
     widget.run(None)

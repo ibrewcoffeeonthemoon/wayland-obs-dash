@@ -23,6 +23,14 @@ Homepage = "https://github.com/ibrewcoffeeonthemoon/wayland-obs-dash"
 [project.scripts]
 obs-dash = "obs_dash:app"
 
+[[tool.mypy.overrides]]
+module = "simpleobsws.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "gi.*"
+ignore_missing_imports = true
+
 [tool.pyright]
 venvPath = "./"
 venv = ".venv"
