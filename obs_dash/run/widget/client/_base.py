@@ -24,8 +24,6 @@ class OBS_Client:
         set_css_classes: Callable[[str], None],
         set_preview_image: Callable[[bytes | None], None],
     ) -> None:
-        # state
-        self._running = True
         # callbacks
         self._set_text = set_text
         self._set_css_classes = set_css_classes
@@ -95,9 +93,6 @@ class OBS_Client:
         # set to default state if anything wrong
         self._set_css_classes('connected')
 
-    def stop(self) -> None:
-        self._running = False
-
     @asynccontextmanager
     async def _connection(self) -> AsyncIterator[simpleobsws.WebSocketClient]:
         try:
@@ -108,14 +103,14 @@ class OBS_Client:
 
     async def _worker(self) -> None:
         # auto reconnect loop
-        while self._running:
+        while True:
             # connection
             async with (
                 self._connection() as conn,
                 self._video_previewer.run(conn)
             ):
                 # start main logic loop
-                while self._running:
+                while True:
                     # check connection
                     if not await self._ping(conn):
                         break
