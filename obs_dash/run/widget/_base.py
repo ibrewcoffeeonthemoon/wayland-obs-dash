@@ -47,6 +47,7 @@ class OBS_Dash_Widget(Gtk.Application):
         self._audio_levelbars = (Gtk.LevelBar(), Gtk.LevelBar())
         for bar in self._audio_levelbars:
             bar.set_orientation(Gtk.Orientation.VERTICAL)
+            bar.set_inverted(True)
             bar.set_min_value(0.0)
             bar.set_max_value(1.0)
 
