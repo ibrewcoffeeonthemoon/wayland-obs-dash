@@ -102,14 +102,15 @@ class OBS_Dash_Widget(Gtk.Application):
         GLib.idle_add(callback, names)
 
     def set_preview_image(self, image: bytes | None) -> None:
+        # return when preview is disabled
+        if not self._show_video:
+            return
+        # return when ping failed
+        if image is None:
+            self._video_picture.set_paintable(None)
+            return
+
         def callback(image: bytes | None) -> bool:
-            # return when preview is disabled
-            if not self._show_video:
-                return False
-            # return when ping failed
-            if image is None:
-                self._video_picture.set_paintable(None)
-                return False
             # make new texture from the bytes
             gbytes = GLib.Bytes.new(image)
             texture = Gdk.Texture.new_from_bytes(gbytes)
