@@ -17,7 +17,7 @@ def run(
     show_video: Annotated[bool, Option(help='Enable source video preview window')] = True,
     video_width: Annotated[int, Option(help='Preview window width')] = 114,
     video_height: Annotated[int, Option(help='Preview window height')] = 48,
-    video_sampling_interval: Annotated[float, Option(help='Preview snapshot sampling interval')] = 0.2,
+    video_sampling_interval: Annotated[float, Option(help='Preview snapshot sampling interval')] = 0.04,
     show_audio: Annotated[bool, Option(help='Enable source audio preview bar')] = True,
     debug: Annotated[bool, Option(help='Enable debug mode verbose output')] = False,
 ) -> None:
