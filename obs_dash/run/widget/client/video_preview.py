@@ -5,22 +5,21 @@ from typing import AsyncIterator, Callable
 
 from simpleobsws import Request, WebSocketClient
 
+from obs_dash.run.args import Args
+
 
 class VideoPreviewer:
     def __init__(
         self,
-        preview: bool,
-        preview_width: int,
-        preview_height: int,
-        preview_interval: float,
+        args: Args,
         *,
         set_preview_image: Callable[[bytes | None], None],
     ) -> None:
         # attrs
-        self._preview = preview
-        self._preview_width = preview_width
-        self._preview_height = preview_height
-        self._preview_interval = preview_interval
+        self._show_video = args.show_video
+        self._video_width = args.video_width
+        self._video_height = args.video_height
+        self._video_sampling_interval = args.video_sampling_interval
         # callbacks
         self._set_preview_image = set_preview_image
 
@@ -32,8 +31,8 @@ class VideoPreviewer:
         res = await conn.call(Request('GetSourceScreenshot', {
             'sourceName': scene_name,
             'imageFormat': 'jpg',
-            'imageWidth': self._preview_width,
-            'imageHeight': self._preview_height,
+            'imageWidth': self._video_width,
+            'imageHeight': self._video_height,
         }))
         # parse result into image bytes
         d = res.responseData
@@ -50,7 +49,7 @@ class VideoPreviewer:
                 # set image bytes
                 self._set_preview_image(image_bytes)
                 # heartbeat
-                await asyncio.sleep(self._preview_interval)
+                await asyncio.sleep(self._video_sampling_interval)
                 continue
             except asyncio.CancelledError:
                 break
@@ -61,12 +60,12 @@ class VideoPreviewer:
     @asynccontextmanager
     async def run(self, conn: WebSocketClient) -> AsyncIterator[None]:
         try:
-            if self._preview:
+            if self._show_video:
                 # start the worker loop
                 self._task = asyncio.create_task(self._worker(conn))
             yield
         finally:
-            if self._preview and self._task:
+            if self._show_video and self._task:
                 # cancel any task
                 self._task.cancel()
                 # reset image

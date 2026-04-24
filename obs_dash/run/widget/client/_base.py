@@ -6,18 +6,15 @@ from typing import AsyncIterator, Callable
 
 from simpleobsws import IdentificationParameters, Request, WebSocketClient
 
+from obs_dash.run.args import Args
+
 from .video_preview import VideoPreviewer
 
 
 class OBS_Client:
     def __init__(
         self,
-        host: str,
-        port: int,
-        preview: bool,
-        preview_width: int,
-        preview_height: int,
-        preview_interval: float,
+        args: Args,
         *,
         set_text: Callable[[str], None],
         set_css_classes: Callable[[str], None],
@@ -29,18 +26,12 @@ class OBS_Client:
         self._set_preview_image = set_preview_image
         # websocket
         self._ws = WebSocketClient(
-            url=f'ws://{host}:{port}',
+            url=f'ws://{args.host}:{args.port}',
             password=(Path.home() / '.obs-studio-password').read_text().strip(),
             identification_parameters=IdentificationParameters(ignoreNonFatalRequestChecks=False),
         )
         # workers
-        self._video_previewer = VideoPreviewer(
-            preview,
-            preview_width,
-            preview_height,
-            preview_interval,
-            set_preview_image=set_preview_image
-        )
+        self._video_previewer = VideoPreviewer(args, set_preview_image=set_preview_image)
 
     async def _connect(self) -> None:
         try:
