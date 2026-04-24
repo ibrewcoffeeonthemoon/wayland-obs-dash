@@ -33,6 +33,12 @@ CSS = '''
         font-size: 24px;
         margin: auto;
     }
+    levelbar block {
+        opacity: 0.8;
+        border: none;
+        width: 4px;
+        min-width: 4px;
+    }
     levelbar block.empty {
         background-color: transparent;
         border-color: transparent;
