@@ -1,0 +1,50 @@
+[build-system]
+requires = [ "setuptools" ]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wayland-obs-dash"
+version = "0.2.0"
+description = "Wayland OBS Dash - A obs-studio status monitor overlay tool for Wayland."
+authors = [
+    { name = "Ibrewcoffee Onthemoon", email = "ibrewcoffeeonthemoon@gmail.com" }
+]
+dependencies = [
+    "typer",
+    "PyGObject",
+    "pycairo",
+    "simpleobsws>=1.4.3",
+]
+requires-python = ">=3.14"
+
+[project.urls]
+Homepage = "https://github.com/ibrewcoffeeonthemoon/wayland-obs-dash"
+
+[project.scripts]
+obs-dash = "obs_dash:app"
+
+[[tool.mypy.overrides]]
+module = "simpleobsws.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "gi.*"
+ignore_missing_imports = true
+
+[tool.pyright]
+venvPath = "./"
+venv = ".venv"
+
+[tool.ruff.lint]
+# Q = flake8-quotes (surgical string fixing)
+# I = isort (import sorting)
+# F401 = unused imports
+select = ["Q", "I", "F401"]
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single"
+docstring-quotes = "single"
+multiline-quotes = "single"
+
+[tool.ruff.format]
+quote-style = "single"
