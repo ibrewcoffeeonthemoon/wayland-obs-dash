@@ -16,7 +16,7 @@ class VideoPreviewer:
         self,
         args: Args,
         *,
-        set_preview_image: Callable[[bytes | None], None],
+        set_video_picture_image: Callable[[bytes | None], None],
     ) -> None:
         # attrs
         self._show_video = args.show_video
@@ -24,7 +24,7 @@ class VideoPreviewer:
         self._video_height = args.video_height
         self._video_sampling_interval = args.video_sampling_interval
         # callbacks
-        self._set_preview_image = set_preview_image
+        self._set_video_picture_image = set_video_picture_image
 
     async def _fetch_source_screenshot(self, conn: WebSocketClient) -> bytes:
         # fetch current scene name
@@ -50,7 +50,7 @@ class VideoPreviewer:
                 # fetch source screenshot
                 image_bytes = await self._fetch_source_screenshot(conn)
                 # set image bytes
-                self._set_preview_image(image_bytes)
+                self._set_video_picture_image(image_bytes)
                 # heartbeat
                 await asyncio.sleep(self._video_sampling_interval)
                 continue
@@ -72,4 +72,4 @@ class VideoPreviewer:
                 # cancel any task
                 self._task.cancel()
                 # reset image
-                self._set_preview_image(None)
+                self._set_video_picture_image(None)

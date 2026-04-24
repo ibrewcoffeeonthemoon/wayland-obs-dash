@@ -9,3 +9,4 @@ class Args:
     video_width: int
     video_height: int
     video_sampling_interval: float
+    show_audio: bool
