@@ -19,8 +19,8 @@ gi.require_version('Gtk4LayerShell', '1.0')
 
 # MUST load after CDLL("libgtk4-layer-shell.so") pre-loading
 # should load after gi.require_version pre-checking
-from gi.repository import Gdk, Gtk, GLib  # noqa
-from gi.repository import Gtk4LayerShell as LayerShell  # noqa
+from gi.repository import Gdk, GLib, Gtk  # type: ignore # noqa
+from gi.repository import Gtk4LayerShell as LayerShell  # type: ignore # noqa
 
 
 class OBS_Dash_Widget(Gtk.Application):
