@@ -35,16 +35,20 @@ class OBS_Dash_Widget(Gtk.Application):
             set_text=self.set_text,
             set_css_classes=self.set_css_classes,
             set_preview_image=self.set_preview_image,
-            set_audio_levelbar_value=self.set_audio_levelbar_value,
+            set_audio_levelbar_values=self.set_audio_levelbar_values,
         )
         # UI components
         self._box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self._timer_label = Gtk.Label(label='00:00:00')
+        self._preview_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self._preview_box.add_css_class('preview-box')
         self._video_picture = Gtk.Picture()
         self._video_picture.set_size_request(args.video_width, args.video_height)
-        self._audio_levelbar = Gtk.LevelBar()
-        self._audio_levelbar.set_min_value(0.0)
-        self._audio_levelbar.set_max_value(1.0)
+        self._audio_levelbars = (Gtk.LevelBar(), Gtk.LevelBar())
+        for bar in self._audio_levelbars:
+            bar.set_orientation(Gtk.Orientation.VERTICAL)
+            bar.set_min_value(0.0)
+            bar.set_max_value(1.0)
 
     def do_activate(self) -> None:
         # Create a window
@@ -63,12 +67,11 @@ class OBS_Dash_Widget(Gtk.Application):
         LayerShell.set_margin(win, LayerShell.Edge.RIGHT, 20)
 
         # Add Conditional Preview Widget
-        if self._show_video:
-            self._box.append(self._video_picture)
-
-        if self._show_audio:
-            self._audio_levelbar.set_orientation(Gtk.Orientation.HORIZONTAL)
-            self._box.append(self._audio_levelbar)
+        if self._show_video or self._show_audio:
+            self._preview_box.append(self._audio_levelbars[0])
+            self._preview_box.append(self._video_picture)
+            self._preview_box.append(self._audio_levelbars[1])
+            self._box.append(self._preview_box)
 
         # Add Timer Label
         self._timer_label.set_halign(Gtk.Align.CENTER)
@@ -128,13 +131,14 @@ class OBS_Dash_Widget(Gtk.Application):
             return False
         GLib.idle_add(callback, image)
 
-    def set_audio_levelbar_value(self, value: float | None) -> None:
+    def set_audio_levelbar_values(self, left: float, right: float) -> None:
         # return when preview is disabled
         if not self._show_audio:
             return
 
-        def callback(value: float) -> bool:
+        def callback(left: float, right: float) -> bool:
             # set the levelbar value
-            self._audio_levelbar.set_value(value)
+            self._audio_levelbars[0].set_value(left)
+            self._audio_levelbars[1].set_value(right)
             return False
-        GLib.idle_add(callback, value)
+        GLib.idle_add(callback, left, right)

@@ -27,22 +27,23 @@ class AudioPreviewer:
         self,
         args: Args,
         *,
-        set_audio_levelbar_value: Callable[[float | None], None],
+        set_audio_levelbar_values: Callable[[float, float], None],
     ) -> None:
         # attrs
         self._show_audio = args.show_audio
         # callbacks
-        self._set_audio_levelbar_value = set_audio_levelbar_value
+        self._set_audio_levelbar_values = set_audio_levelbar_values
 
     async def _on_input_volume_meters(self, data: dict) -> None:
         # select the data matrix
         mul = data['inputs'][0]['inputLevelsMul']
         # process values
-        peak_val = sum(ch[0] for ch in mul)/len(mul)
-        db = linear_to_db(peak_val)
-        ui_value = db_to_ui_percent(db)
+        linear_values = (mul[0][0], mul[0][1])
+        db_values = map(linear_to_db, linear_values)
+        ui_values = map(db_to_ui_percent, db_values)
+        left, right = next(ui_values), next(ui_values)
         # set the levelbar
-        self._set_audio_levelbar_value(ui_value)
+        self._set_audio_levelbar_values(left, right)
 
     @asynccontextmanager
     async def run(self, conn: WebSocketClient) -> AsyncIterator[None]:
@@ -56,4 +57,4 @@ class AudioPreviewer:
                 # unsubscribe to InputVolumeMeters
                 conn.deregister_event_callback(self._on_input_volume_meters, 'InputVolumeMeters')
                 # reset the levelbar
-                self._set_audio_levelbar_value(0)
+                self._set_audio_levelbar_values(0, 0)

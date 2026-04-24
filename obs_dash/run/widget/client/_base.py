@@ -23,7 +23,7 @@ class OBS_Client:
         set_text: Callable[[str], None],
         set_css_classes: Callable[[str], None],
         set_preview_image: Callable[[bytes | None], None],
-        set_audio_levelbar_value: Callable[[float | None], None],
+        set_audio_levelbar_values: Callable[[float, float], None],
     ) -> None:
         # callbacks
         self._set_text = set_text
@@ -39,7 +39,7 @@ class OBS_Client:
         )
         # workers
         self._video_previewer = VideoPreviewer(args, set_preview_image=set_preview_image)
-        self._audio_previewer = AudioPreviewer(args, set_audio_levelbar_value=set_audio_levelbar_value)
+        self._audio_previewer = AudioPreviewer(args, set_audio_levelbar_values=set_audio_levelbar_values)
 
     async def _connect(self) -> None:
         try:
