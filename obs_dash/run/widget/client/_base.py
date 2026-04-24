@@ -1,5 +1,4 @@
 import asyncio
-import base64
 import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -7,6 +6,8 @@ from typing import AsyncIterator, Callable
 
 import simpleobsws
 from simpleobsws import Request, WebSocketClient
+
+from .video_preview import VideoPreviewer
 
 
 class OBS_Client:
@@ -23,11 +24,6 @@ class OBS_Client:
         set_css_classes: Callable[[str], None],
         set_preview_image: Callable[[bytes | None], None],
     ) -> None:
-        # attrs
-        self._preview = preview
-        self._preview_width = preview_width
-        self._preview_height = preview_height
-        self._preview_interval = preview_interval
         # state
         self._running = True
         # callbacks
@@ -39,6 +35,14 @@ class OBS_Client:
             url=f'ws://{host}:{port}',
             password=(Path.home() / '.obs-studio-password').read_text().strip(),
             identification_parameters=simpleobsws.IdentificationParameters(ignoreNonFatalRequestChecks=False),
+        )
+        # workers
+        self._video_previewer = VideoPreviewer(
+            preview,
+            preview_width,
+            preview_height,
+            preview_interval,
+            set_preview_image=set_preview_image
         )
 
     async def _connect(self) -> None:
@@ -70,7 +74,6 @@ class OBS_Client:
             print(e)
         # set to default state if anything wrong
         self._set_css_classes('disconnect')
-        self._set_preview_image(None)
         return False
 
     async def _check_record_status(self, conn: WebSocketClient) -> None:
@@ -92,28 +95,6 @@ class OBS_Client:
         # set to default state if anything wrong
         self._set_css_classes('connected')
 
-    async def _fetch_source_screenshot(self, conn: WebSocketClient) -> None:
-        try:
-            # fetch current scene name
-            res = await conn.call(Request('GetSceneList'))
-            scene_name = res.responseData['currentProgramSceneName']
-            # fetch source screenshot
-            res = await conn.call(Request('GetSourceScreenshot', {
-                'sourceName': scene_name,
-                'imageFormat': 'jpg',
-                'imageWidth': self._preview_width,
-                'imageHeight': self._preview_height,
-            }))
-            # parse result into image bytes
-            d = res.responseData
-            image_data = d['imageData'].split(',')[1].strip()
-            image_bytes = base64.b64decode(image_data)
-            # set image bytes
-            self._set_preview_image(image_bytes)
-        except Exception as e:
-            self._set_preview_image(None)
-            raise e
-
     def stop(self) -> None:
         self._running = False
 
@@ -125,28 +106,14 @@ class OBS_Client:
         finally:
             await self._disconnect()
 
-    async def _preview_worker(self, conn: simpleobsws.WebSocketClient) -> None:
-        while self._running:
-            try:
-                # fetch source screenshot
-                await self._fetch_source_screenshot(conn)
-                # heartbeat
-                await asyncio.sleep(self._preview_interval)
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                print(e)
-                break
-
     async def _worker(self) -> None:
         # auto reconnect loop
         while self._running:
             # connection
-            async with (self._connection() as conn, asyncio.TaskGroup() as tg):
-                # start tasks
-                if self._preview:
-                    tg.create_task(self._preview_worker(conn))
-
+            async with (
+                self._connection() as conn,
+                self._video_previewer.run(conn)
+            ):
                 # start main logic loop
                 while self._running:
                     # check connection
