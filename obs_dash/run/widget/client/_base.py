@@ -9,6 +9,7 @@ from simpleobsws import IdentificationParameters, Request, WebSocketClient
 
 from obs_dash.run.args import Args
 
+from .audio_preview import AudioPreviewer
 from .video_preview import VideoPreviewer
 
 logger = logging.getLogger(__file__)
@@ -22,11 +23,11 @@ class OBS_Client:
         set_text: Callable[[str], None],
         set_css_classes: Callable[[str], None],
         set_preview_image: Callable[[bytes | None], None],
+        set_audio_levelbar_value: Callable[[float | None], None],
     ) -> None:
         # callbacks
         self._set_text = set_text
         self._set_css_classes = set_css_classes
-        self._set_preview_image = set_preview_image
         # websocket
         self._ws = WebSocketClient(
             url=f'ws://{args.host}:{args.port}',
@@ -35,6 +36,7 @@ class OBS_Client:
         )
         # workers
         self._video_previewer = VideoPreviewer(args, set_preview_image=set_preview_image)
+        self._audio_previewer = AudioPreviewer(args, set_audio_levelbar_value=set_audio_levelbar_value)
 
     async def _connect(self) -> None:
         try:
@@ -101,7 +103,8 @@ class OBS_Client:
                 # connection
                 self._connection() as conn,
                 # tasks
-                self._video_previewer.run(conn)
+                self._video_previewer.run(conn),
+                self._audio_previewer.run(conn),
             ):
                 # start main logic loop
                 while True:

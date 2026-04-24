@@ -35,6 +35,7 @@ class OBS_Dash_Widget(Gtk.Application):
             set_text=self.set_text,
             set_css_classes=self.set_css_classes,
             set_preview_image=self.set_preview_image,
+            set_audio_levelbar_value=self.set_audio_levelbar_value,
         )
         # UI components
         self._box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -66,7 +67,6 @@ class OBS_Dash_Widget(Gtk.Application):
             self._box.append(self._video_picture)
 
         if self._show_audio:
-            self._audio_levelbar.set_value(0.5)  # TODO: dummy value
             self._audio_levelbar.set_orientation(Gtk.Orientation.HORIZONTAL)
             self._box.append(self._audio_levelbar)
 
@@ -127,3 +127,14 @@ class OBS_Dash_Widget(Gtk.Application):
             self._video_picture.set_paintable(texture)
             return False
         GLib.idle_add(callback, image)
+
+    def set_audio_levelbar_value(self, value: float | None) -> None:
+        # return when preview is disabled
+        if not self._show_audio:
+            return
+
+        def callback(value: float) -> bool:
+            # set the levelbar value
+            self._audio_levelbar.set_value(value)
+            return False
+        GLib.idle_add(callback, value)
