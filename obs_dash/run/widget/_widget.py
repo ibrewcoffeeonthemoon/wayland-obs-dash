@@ -29,6 +29,7 @@ class OBS_Dash_Widget(Gtk.Application):
         preview: bool,
         preview_width: int,
         preview_height: int,
+        preview_interval: float,
     ) -> None:
         super().__init__()
         # attrs
@@ -40,6 +41,7 @@ class OBS_Dash_Widget(Gtk.Application):
             preview,
             preview_width,
             preview_height,
+            preview_interval,
             set_text=self.set_text,
             set_css_classes=self.set_css_classes,
             set_preview_image=self.set_preview_image,

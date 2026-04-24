@@ -17,6 +17,7 @@ class OBS_Client:
         preview: bool,
         preview_width: int,
         preview_height: int,
+        preview_interval: float,
         *,
         set_text: Callable[[str], None],
         set_css_classes: Callable[[str], None],
@@ -26,6 +27,7 @@ class OBS_Client:
         self._preview = preview
         self._preview_width = preview_width
         self._preview_height = preview_height
+        self._preview_interval = preview_interval
         # state
         self._running = True
         # callbacks
@@ -110,7 +112,7 @@ class OBS_Client:
             self._set_preview_image(image_bytes)
         except Exception as e:
             self._set_preview_image(None)
-            print(e)
+            raise e
 
     def stop(self) -> None:
         self._running = False
@@ -123,23 +125,35 @@ class OBS_Client:
         finally:
             await self._disconnect()
 
+    async def _preview_worker(self, conn: simpleobsws.WebSocketClient) -> None:
+        while self._running:
+            try:
+                # fetch source screenshot
+                await self._fetch_source_screenshot(conn)
+                # heartbeat
+                await asyncio.sleep(self._preview_interval)
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                print(e)
+                break
+
     async def _worker(self) -> None:
         # auto reconnect loop
         while self._running:
             # connection
-            async with self._connection() as conn:
-                # main logic loop
+            async with (self._connection() as conn, asyncio.TaskGroup() as tg):
+                # start tasks
+                if self._preview:
+                    tg.create_task(self._preview_worker(conn))
+
+                # start main logic loop
                 while self._running:
                     # check connection
                     if not await self._ping(conn):
                         break
                     # check record status
                     await self._check_record_status(conn)
-
-                    # fetch source screenshot
-                    if self._preview:
-                        await self._fetch_source_screenshot(conn)
-
                     # heartbeat
                     await asyncio.sleep(1)
 

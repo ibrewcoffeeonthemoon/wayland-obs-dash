@@ -15,6 +15,7 @@ def run(
     preview: Annotated[bool, Option(help='Enable source video preview window')] = True,
     preview_width: Annotated[int, Option(help='Preview window width')] = 114,
     preview_height: Annotated[int, Option(help='Preview window height')] = 48,
+    preview_interval: Annotated[float, Option(help='Preview snapshot sampling interval')] = 0.2,
 ) -> None:
     widget = OBS_Dash_Widget(
         host,
@@ -22,5 +23,6 @@ def run(
         preview,
         preview_width,
         preview_height,
+        preview_interval,
     )
     widget.run(None)
