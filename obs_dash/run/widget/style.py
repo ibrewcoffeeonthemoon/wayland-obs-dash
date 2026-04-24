@@ -11,6 +11,13 @@ CSS = '''
     picture {
         border-radius: 6px;
     }
+    .preview-box {
+        background-color: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0px;
+        margin: 0px;
+    }
     .disconnected {
         background-color: #828282;
     }
