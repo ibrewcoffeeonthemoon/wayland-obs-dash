@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wayland-obs-dash"
-version = "0.1.0"
+version = "0.2.0"
 description = "Wayland OBS Dash - A obs-studio status monitor overlay tool for Wayland."
 authors = [
     { name = "Ibrewcoffee Onthemoon", email = "ibrewcoffeeonthemoon@gmail.com" }
