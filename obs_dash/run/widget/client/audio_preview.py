@@ -38,7 +38,7 @@ class AudioPreviewer:
         # select the data matrix
         mul = data['inputs'][0]['inputLevelsMul']
         # process values
-        linear_values = (mul[0][0], mul[0][1])
+        linear_values = (mul[0][0], mul[1][0])
         db_values = map(linear_to_db, linear_values)
         ui_values = map(db_to_ui_percent, db_values)
         left, right = next(ui_values), next(ui_values)
