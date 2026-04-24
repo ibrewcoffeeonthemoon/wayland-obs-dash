@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 
 import typer
@@ -17,7 +18,14 @@ def run(
     video_width: Annotated[int, Option(help='Preview window width')] = 114,
     video_height: Annotated[int, Option(help='Preview window height')] = 48,
     video_sampling_interval: Annotated[float, Option(help='Preview snapshot sampling interval')] = 0.2,
+    debug: Annotated[bool, Option(help='Enable debug mode verbose output')] = False,
 ) -> None:
+    # logger
+    logging.basicConfig(
+        level=logging.INFO if debug else logging.WARNING,
+        format='%(levelname)s | %(filename)s:%(lineno)d | %(message)s'
+    )
+
     # params
     args = Args(
         host,

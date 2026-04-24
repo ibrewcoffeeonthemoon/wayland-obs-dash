@@ -1,11 +1,14 @@
 import asyncio
 import base64
+import logging
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, Callable
 
 from simpleobsws import Request, WebSocketClient
 
 from obs_dash.run.args import Args
+
+logger = logging.getLogger(__file__)
 
 
 class VideoPreviewer:
@@ -51,10 +54,10 @@ class VideoPreviewer:
                 # heartbeat
                 await asyncio.sleep(self._video_sampling_interval)
                 continue
-            except asyncio.CancelledError:
-                break
+            except asyncio.CancelledError as e:
+                logger.warning(e)
             except Exception as e:
-                print(e)
+                logger.info(e)
                 break
 
     @asynccontextmanager

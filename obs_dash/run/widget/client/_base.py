@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -9,6 +10,8 @@ from simpleobsws import IdentificationParameters, Request, WebSocketClient
 from obs_dash.run.args import Args
 
 from .video_preview import VideoPreviewer
+
+logger = logging.getLogger(__file__)
 
 
 class OBS_Client:
@@ -40,7 +43,7 @@ class OBS_Client:
             self._set_css_classes('connected')
             return
         except Exception as e:
-            print(e)
+            logger.info(e)
         # set to default state if anything wrong
         self._set_css_classes('disconnect')
 
@@ -56,10 +59,10 @@ class OBS_Client:
             assert res.ok()
             # return ping success
             return True
-        except AssertionError:
-            pass
+        except AssertionError as e:
+            logger.error(e)
         except Exception as e:
-            print(e)
+            logger.info(e)
         # set to default state if anything wrong
         self._set_css_classes('disconnect')
         return False
@@ -70,16 +73,16 @@ class OBS_Client:
             res = await conn.call(Request('GetRecordStatus'))
             d = res.responseData
             # assert outputActive
-            assert d['outputActive']
+            assert d['outputActive'], 'Not recording. outputActive field is missing'
             # set timecode and state
             timecode = d['outputTimecode'][:-4]
             self._set_text(timecode)
             self._set_css_classes('recording')
             return
-        except AssertionError:
-            pass
+        except AssertionError as e:
+            logger.info(e)
         except Exception as e:
-            print(e)
+            logger.info(e)
         # set to default state if anything wrong
         self._set_css_classes('connected')
 
