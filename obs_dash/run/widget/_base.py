@@ -5,8 +5,8 @@ from ctypes import CDLL
 import cairo
 import gi
 
+from .client import OBS_Client
 from .style import CSS
-from .websocket import OBS_Client
 
 # pre-loading
 CDLL('libgtk4-layer-shell.so')
