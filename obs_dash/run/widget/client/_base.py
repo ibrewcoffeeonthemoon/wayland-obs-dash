@@ -32,7 +32,10 @@ class OBS_Client:
         self._ws = WebSocketClient(
             url=f'ws://{args.host}:{args.port}',
             password=(Path.home() / '.obs-studio-password').read_text().strip(),
-            identification_parameters=IdentificationParameters(ignoreNonFatalRequestChecks=False),
+            identification_parameters=IdentificationParameters(
+                # eventSubscriptions bitmask: 1023 (All standard events) | 65536 (InputVolumeMeters) = 66559
+                eventSubscriptions=66559,
+            ),
         )
         # workers
         self._video_previewer = VideoPreviewer(args, set_preview_image=set_preview_image)
