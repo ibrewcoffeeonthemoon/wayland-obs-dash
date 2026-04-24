@@ -28,6 +28,7 @@ class OBS_Dash_Widget(Gtk.Application):
         super().__init__()
         # attrs
         self._show_video = args.show_video
+        self._show_audio = args.show_audio
         # client
         self._client = OBS_Client(
             args,
@@ -40,6 +41,9 @@ class OBS_Dash_Widget(Gtk.Application):
         self._timer_label = Gtk.Label(label='00:00:00')
         self._video_picture = Gtk.Picture()
         self._video_picture.set_size_request(args.video_width, args.video_height)
+        self._audio_levelbar = Gtk.LevelBar()
+        self._audio_levelbar.set_min_value(0.0)
+        self._audio_levelbar.set_max_value(1.0)
 
     def do_activate(self) -> None:
         # Create a window
@@ -60,6 +64,11 @@ class OBS_Dash_Widget(Gtk.Application):
         # Add Conditional Preview Widget
         if self._show_video:
             self._box.append(self._video_picture)
+
+        if self._show_audio:
+            self._audio_levelbar.set_value(0.5)  # TODO: dummy value
+            self._audio_levelbar.set_orientation(Gtk.Orientation.HORIZONTAL)
+            self._box.append(self._audio_levelbar)
 
         # Add Timer Label
         self._timer_label.set_halign(Gtk.Align.CENTER)
